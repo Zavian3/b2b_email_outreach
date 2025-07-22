@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Peekr - Driving Sales & Growth</title>
+  <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .header {
+      width: 100%;
+      text-align: center;
+    }
+    .header img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .main-content {
+      padding: 21px 21px;
+    }
+    .title {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .title h1 {
+      font-size: 26px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 5px;
+      font-family: 'Urbanist';
+      font-weight: 700;
+    }
+    .title .subtitle {
+      color: #ff9a9e;
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 22px;
+    }
+    .greeting {
+      margin-bottom: 20px;
+    }
+    .greeting span {
+      color: #ff9a9e;
+      font-weight: 500;
+    }
+    .intro-text, .transition-text, .company-intro, .closing-text {
+      margin-bottom: 25px;
+      color: #666;
+      line-height: 1.6;
+      text-align: justify;
+    }
+    .intro-text ul {
+      list-style: none;
+      padding-left: 0;
+      margin: 20px 0;
+    }
+    .intro-text li {
+      margin-bottom: 8px;
+      padding-left: 20px;
+      position: relative;
+      color: #666;
+      text-align: justify;
+    }
+    .intro-text li::before {
+      content: '•';
+      position: absolute;
+      left: 0;
+      color: #ff9a9e;
+      font-weight: bold;
+    }
+    .solutions ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    .solutions li {
+      margin-bottom: 12px;
+      padding-left: 0;
+      position: relative;
+      color: #666;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      text-align: justify;
+    }
+    .solutions li img {
+      width: 20px;
+      height: 20px;
+      margin-right: 14px;
+      vertical-align: middle;
+    }
+    .cta-button {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .btn-link {
+      display: inline-block;
+      background: #583C87;
+      color: white !important;
+      text-align: center;
+      text-decoration: none !important;
+      padding: 15px 40px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.2s;
+      width: 81%;
+    }
+    .btn-link:hover {
+      transform: translateY(-2px);
+    }
+    .footer {
+      background: #ff9a9e;
+      color: white;
+      padding: 30px 20px;
+      text-align: center;
+      padding-top: 20px;
+    }
+    .footer-logo {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    .footer-logo img {
+      width: 210px;
+      height: 70px;
+      display: block;
+      margin: 0 auto;
+    }
+    .contact-info {
+      text-align: center;
+      margin: 0 auto;
+    }
+    .contact-info .item {
+      display: inline-block;
+      margin: 0 14px 10px 14px;
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+      vertical-align: middle;
+    }
+    .contact-info .item img {
+      width: 16px;
+      height: 16px;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    .contact-info a {
+      color: white !important;
+      text-decoration: none !important;
+    }
+    .text {
+      font-size: 14px;
+      color: white;
+      font-weight: 500;
+      margin-left: 10px;
+    }
+    @media (max-width: 600px) {
+      .main-content {
+        padding: 30px 20px;
+      }
+      .title h1 {
+        font-size: 20px;
+      }
+      .title .subtitle {
+        font-size: 16px;
+      }
+      .contact-info .item {
+        display: block;
+        margin: 10px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <img src="https://res.cloudinary.com/dnf0c8nfi/image/upload/v1752579805/header_image_royrmj.jpg" alt="Header Image" />
+    </div>
+    <div class="main-content">
+      <div class="title">
+        <h1>{{Subject}}</h1>
+      </div>
+      <div class="greeting">Greeting <span>{{Title}}</span>,</div>
+      <div class="intro-text">{{body}}</div>
+
+      <div class="cta-button">
+        <a href="https://calendly.com/peekr-info/30min" class="btn-link" target="_blank">👉 Book Your Free Consultation</a>
+      </div>
+      <div class="closing-text">
+        Let's connect and explore where you're seeing friction — and how Peekr can help unlock your growth.
+      </div>
+    </div>
+    <div class="footer">
+      <div class="footer-logo">
+        <img src="https://res.cloudinary.com/dnf0c8nfi/image/upload/v1753181674/Peekt_Logo_tfswil.png" alt="Peekr Logo">
+      </div>
+      <div class="contact-info">
+        <div class="item contact-phone">
+          <img src="https://res.cloudinary.com/dnf0c8nfi/image/upload/v1752662460/Vector_o0iswf.png" alt="phone" />
+          <span>+971 54 231 1123</span>
+        </div>
+        <div class="item contact-email">
+          <img src="https://res.cloudinary.com/dnf0c8nfi/image/upload/v1752662595/streamline-flex-color_mail-send-email-message-circle-flat_kzydko.png" alt="email" />
+          <a href="mailto:info@peekr.io">info@peekr.io</a>
+        </div>
+        <div class="item contact-website">
+          <img src="https://res.cloudinary.com/dnf0c8nfi/image/upload/v1752662666/mynaui_globe_bmxodh.png" alt="website" />
+          <a href="https://peekr.io" target="_blank">www.peekr.io</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

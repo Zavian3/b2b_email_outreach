@@ -1,0 +1,11 @@
+gspread
+oauth2client
+pandas
+requests
+openai
+python-dotenv
+psutil
+schedule
+pytz
+beautifulsoup4
+markdown
