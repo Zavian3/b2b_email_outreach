@@ -1,0 +1,22 @@
+name: peekr-test
+services:
+- name: dashboard
+  source_dir: /
+  github:
+    repo: Zavian3/b2b_email_outreach
+    branch: main
+    deploy_on_push: true
+  build_command: pip install -r requirements.txt
+  run_command: python3 simple_dashboard.py
+  environment_slug: python
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  routes:
+  - path: /
+  envs:
+  - key: GOOGLE_CREDENTIALS_JSON
+    scope: RUN_TIME
+    type: SECRET
+  - key: SPREADSHEET_ID
+    scope: RUN_TIME
+    type: SECRET

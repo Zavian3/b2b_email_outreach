@@ -6,11 +6,14 @@ services:
     repo: Zavian3/b2b_email_outreach
     branch: main
     deploy_on_push: true
-  run_command: python3 combined_app.py
+  build_command: pip install -r requirements.txt
+  run_command: python3 simple_dashboard.py
   environment_slug: python
   instance_count: 1
   instance_size_slug: basic-xxs
   http_port: 8080
+  routes:
+  - path: /
   envs:
   - key: OPENAI_API_KEY
     scope: RUN_TIME
