@@ -377,7 +377,7 @@ class PeekrAutomationMaster:
             
             # Load existing leads for deduplication
             if not self.load_existing_leads_for_deduplication():
-                logger.error("❌ Failed to load existing leads")
+                logger.error("ERROR:  Failed to load existing leads")
                 return
             
             # Get categories and locations
@@ -386,11 +386,11 @@ class PeekrAutomationMaster:
                 categories_data = categories_sheet.get_all_records()
                 categories_df = pd.DataFrame(categories_data)
             except Exception as e:
-                logger.error(f"❌ Error loading categories: {e}")
+                logger.error(f"ERROR:  Error loading categories: {e}")
                 return
             
             if categories_df.empty:
-                logger.error("❌ No categories found")
+                logger.error("ERROR:  No categories found")
                 return
             
             total_leads_generated = 0
@@ -424,7 +424,7 @@ class PeekrAutomationMaster:
             logger.info(f"🎉 Lead generation completed! Generated {total_leads_generated} new leads")
             
         except Exception as e:
-            logger.error(f"❌ Lead generation failed: {e}")
+            logger.error(f"ERROR:  Lead generation failed: {e}")
     
     # ==========================================
     # 2. EMAIL OUTREACH
@@ -545,12 +545,12 @@ class PeekrAutomationMaster:
                     body = data.get('email', '')
                     solutions = data.get('solutions', solutions)
                     
-                    logger.debug(f"✅ JSON parsing successful")
+                    logger.debug(f"SUCCESS: JSON parsing successful")
                 else:
                     raise ValueError("No JSON found in response")
                     
             except (json.JSONDecodeError, ValueError, KeyError) as e:
-                logger.debug(f"❌ JSON parsing failed: {e}, trying fallback parsing...")
+                logger.debug(f"ERROR:  JSON parsing failed: {e}, trying fallback parsing...")
                 
                 # Fallback to old format parsing
                 lines = content.split('\n')
@@ -593,7 +593,7 @@ class PeekrAutomationMaster:
             return subject, body, solutions
             
         except Exception as e:
-            logger.error(f"❌ Error generating email content: {e}")
+            logger.error(f"ERROR:  Error generating email content: {e}")
             return "", "", ["Optimize workflows", "Improve efficiency", "Drive growth"]
     
     def send_email(self, to_email, subject, html_body):
@@ -609,11 +609,11 @@ class PeekrAutomationMaster:
                 server.login(Config.EMAIL_ACCOUNT, Config.EMAIL_PASSWORD)
                 server.send_message(msg)
             
-            logger.info(f"✅ Email sent to {to_email}")
+            logger.info(f"SUCCESS: Email sent to {to_email}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to send email to {to_email}: {e}")
+            logger.error(f"ERROR:  Failed to send email to {to_email}: {e}")
             return False
     
     def run_email_outreach(self):
@@ -645,13 +645,13 @@ class PeekrAutomationMaster:
                     try:
                         # Update Valid Email column
                         self.leads_worksheet.update_cell(row_number, 4, best_email)  # Column D (Valid Email)
-                        logger.info(f"✅ Validated email for row {row_number}: {best_email}")
+                        logger.info(f"SUCCESS: Validated email for row {row_number}: {best_email}")
                         validation_count += 1
                         time.sleep(1)  # Rate limiting for sheet updates
                     except Exception as e:
-                        logger.error(f"❌ Error updating Valid Email for row {row_number}: {e}")
+                        logger.error(f"ERROR:  Error updating Valid Email for row {row_number}: {e}")
                 else:
-                    logger.debug(f"⚠️ No valid business email found in: {email_data}")
+                    logger.debug(f"WARNING: No valid business email found in: {email_data}")
             
             logger.info(f"📊 Email validation completed: {validation_count} emails validated")
             
@@ -681,7 +681,7 @@ class PeekrAutomationMaster:
                     subject, body, solutions = self.generate_subject_and_body(title, category)
                     
                     if not subject or not body:
-                        logger.warning(f"⚠️ Failed to generate content for {title}")
+                        logger.warning(f"WARNING: Failed to generate content for {title}")
                         continue
                     
                     # Load email template
@@ -728,15 +728,15 @@ class PeekrAutomationMaster:
                         sent_count += 1
                         time.sleep(10)  # Rate limiting between emails
                     else:
-                        logger.error(f"❌ Failed to send email to {valid_email}")
+                        logger.error(f"ERROR:  Failed to send email to {valid_email}")
                 
                 except Exception as e:
-                    logger.error(f"❌ Error processing {valid_email}: {e}")
+                    logger.error(f"ERROR:  Error processing {valid_email}: {e}")
             
-            logger.info(f"✅ Email outreach completed! Sent {sent_count} emails")
+            logger.info(f"SUCCESS: Email outreach completed! Sent {sent_count} emails")
             
         except Exception as e:
-            logger.error(f"❌ Email outreach failed: {e}")
+            logger.error(f"ERROR:  Email outreach failed: {e}")
     
     # ==========================================
     # 3. REAL-TIME REPLY MONITORING
@@ -752,7 +752,7 @@ class PeekrAutomationMaster:
             return True
             
         except Exception as e:
-            logger.error(f"❌ Error loading valid emails: {e}")
+            logger.error(f"ERROR:  Error loading valid emails: {e}")
             return False
     
     def check_new_emails_fast(self):
@@ -810,7 +810,7 @@ class PeekrAutomationMaster:
             return new_emails
             
         except Exception as e:
-            logger.error(f"❌ Error checking emails: {e}")
+            logger.error(f"ERROR:  Error checking emails: {e}")
             return 0
     
     def extract_email_body(self, msg):
@@ -850,7 +850,7 @@ class PeekrAutomationMaster:
             return "INTERESTED" if "INTERESTED" in classification else "NOT INTERESTED"
             
         except Exception as e:
-            logger.error(f"❌ Error classifying interest: {e}")
+            logger.error(f"ERROR:  Error classifying interest: {e}")
             return "NOT INTERESTED"
     
     def send_reply(self, to_email, original_subject, email_content, interest_level):
@@ -886,11 +886,11 @@ class PeekrAutomationMaster:
                 server.login(Config.EMAIL_ACCOUNT, Config.EMAIL_PASSWORD)
                 server.sendmail(Config.EMAIL_ACCOUNT, to_email, msg.as_string())
             
-            logger.info(f"✅ {interest_level} reply sent to {to_email}")
+            logger.info(f"SUCCESS: {interest_level} reply sent to {to_email}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Error sending reply to {to_email}: {e}")
+            logger.error(f"ERROR:  Error sending reply to {to_email}: {e}")
             return False
     
     def update_lead_status(self, email, status, reply_content=""):
@@ -911,7 +911,7 @@ class PeekrAutomationMaster:
                     break
                     
         except Exception as e:
-            logger.error(f"❌ Error updating lead status: {e}")
+            logger.error(f"ERROR:  Error updating lead status: {e}")
     
     def process_email_detailed(self, email_info):
         """Process email in detail"""
@@ -964,7 +964,7 @@ class PeekrAutomationMaster:
             return True
             
         except Exception as e:
-            logger.error(f"❌ Error processing email from {email_info['sender']}: {e}")
+            logger.error(f"ERROR:  Error processing email from {email_info['sender']}: {e}")
             self.stats['errors'] += 1
             return False
     
@@ -979,14 +979,14 @@ class PeekrAutomationMaster:
             except queue.Empty:
                 continue
             except Exception as e:
-                logger.error(f"❌ Error in email processor worker: {e}")
+                logger.error(f"ERROR:  Error in email processor worker: {e}")
     
     def start_realtime_reply_monitoring(self):
         """Start real-time reply monitoring"""
         logger.info("📡 Starting REAL-TIME email reply monitoring...")
         
         if not self.load_valid_emails():
-            logger.error("❌ Failed to load valid emails")
+            logger.error("ERROR:  Failed to load valid emails")
             return
         
         self.running = True
@@ -1021,7 +1021,7 @@ class PeekrAutomationMaster:
                         logger.info(f"⏰ Uptime: {uptime}")
                         logger.info(f"📧 Emails processed: {self.stats['emails_processed']}")
                         logger.info(f"✉️ Replies sent: {self.stats['replies_sent']}")
-                        logger.info(f"❌ Network errors: {consecutive_errors}")
+                        logger.info(f"ERROR:  Network errors: {consecutive_errors}")
                         logger.info(f"📦 Queue size: {self.email_queue.qsize()}")
                         logger.info("="*50)
                         last_stats_report = datetime.now(self.timezone)
@@ -1035,7 +1035,7 @@ class PeekrAutomationMaster:
                     consecutive_errors += 1
                     # Only log errors every 5 minutes to avoid spam
                     if datetime.now(self.timezone) - last_error_log > timedelta(minutes=5):
-                        logger.warning(f"⚠️ Network connectivity issues detected (errors: {consecutive_errors})")
+                        logger.warning(f"WARNING: Network connectivity issues detected (errors: {consecutive_errors})")
                         logger.info("🔧 Email monitoring will continue when connectivity is restored")
                         last_error_log = datetime.now(self.timezone)
                     
@@ -1047,7 +1047,7 @@ class PeekrAutomationMaster:
         monitor_thread = threading.Thread(target=monitoring_loop, daemon=True)
         monitor_thread.start()
         
-        logger.info("✅ Real-time reply monitoring started successfully")
+        logger.info("SUCCESS: Real-time reply monitoring started successfully")
     
     # ==========================================
     # 4. FOLLOW-UP CAMPAIGNS
@@ -1132,7 +1132,7 @@ class PeekrAutomationMaster:
             return candidates
             
         except Exception as e:
-            logger.error(f"❌ Error getting follow-up candidates: {e}")
+            logger.error(f"ERROR:  Error getting follow-up candidates: {e}")
             return []
     
     def send_followup_email(self, candidate):
@@ -1174,11 +1174,11 @@ class PeekrAutomationMaster:
                 server.login(Config.EMAIL_ACCOUNT, Config.EMAIL_PASSWORD)
                 server.send_message(msg)
             
-            logger.info(f"✅ Follow-up #{candidate['followup_count'] + 1} sent to {candidate['email']}")
+            logger.info(f"SUCCESS: Follow-up #{candidate['followup_count'] + 1} sent to {candidate['email']}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Error sending follow-up to {candidate['email']}: {e}")
+            logger.error(f"ERROR:  Error sending follow-up to {candidate['email']}: {e}")
             return False
     
     def update_followup_tracking(self, candidate, success):
@@ -1195,7 +1195,7 @@ class PeekrAutomationMaster:
                 
                 # Update status
                 if new_count >= 3:
-                    status = f"Follow-up Complete (3/3) ✅"
+                    status = f"Follow-up Complete (3/3) SUCCESS:"
                 else:
                     status = f"Follow-up Sent ({new_count}/3) 📧"
                 
@@ -1204,7 +1204,7 @@ class PeekrAutomationMaster:
                 logger.info(f"📊 Updated tracking for {candidate['email']}: {new_count}/3")
             
         except Exception as e:
-            logger.error(f"❌ Error updating tracking: {e}")
+            logger.error(f"ERROR:  Error updating tracking: {e}")
     
     def run_followup_campaign(self):
         """Main follow-up campaign process"""
@@ -1214,7 +1214,7 @@ class PeekrAutomationMaster:
             candidates = self.get_follow_up_candidates()
             
             if not candidates:
-                logger.info("✅ No follow-ups needed at this time")
+                logger.info("SUCCESS: No follow-ups needed at this time")
                 return
             
             sent_count = 0
@@ -1230,7 +1230,7 @@ class PeekrAutomationMaster:
             logger.info(f"🎉 Follow-up campaign completed! Sent {sent_count}/{len(candidates)} emails")
             
         except Exception as e:
-            logger.error(f"❌ Follow-up campaign failed: {e}")
+            logger.error(f"ERROR:  Follow-up campaign failed: {e}")
     
     # ==========================================
     # 5. MASTER SCHEDULER
@@ -1272,7 +1272,7 @@ class PeekrAutomationMaster:
         # Setup all schedules
         self.setup_schedules()
         
-        logger.info("✅ All systems operational! Press Ctrl+C to stop.")
+        logger.info("SUCCESS: All systems operational! Press Ctrl+C to stop.")
         
         try:
             while True:
@@ -1284,7 +1284,7 @@ class PeekrAutomationMaster:
             self.running = False
             logger.info("👋 Peekr Automation Master stopped.")
         except Exception as e:
-            logger.error(f"❌ Master automation error: {e}")
+            logger.error(f"ERROR:  Master automation error: {e}")
 
 # ==========================================
 # MAIN ENTRY POINT
