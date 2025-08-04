@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  automation-engine:
+    build: .
+    command: python peekr_automation_master.py
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - EMAIL_ACCOUNT=${EMAIL_ACCOUNT}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+      - SENDER_NAME=${SENDER_NAME}
+      - SMTP_SERVER=${SMTP_SERVER:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-465}
+      - IMAP_SERVER=${IMAP_SERVER:-imap.gmail.com}
+      - IMAP_PORT=${IMAP_PORT:-993}
+      - GOOGLE_CREDENTIALS_FILE=${GOOGLE_CREDENTIALS_FILE:-credentials.json}
+      - SPREADSHEET_ID=${SPREADSHEET_ID}
+      - APIFY_API_KEY=${APIFY_API_KEY}
+      - TIMEZONE=${TIMEZONE:-Asia/Dubai}
+    volumes:
+      - ./credentials.json:/app/credentials.json:ro
+      - ./logs:/app/logs
+    restart: unless-stopped
+    depends_on:
+      - admin-dashboard
+
+  admin-dashboard:
+    build: .
+    command: streamlit run admin_dashboard.py --server.port 8501 --server.address 0.0.0.0
+    ports:
+      - "8501:8501"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GOOGLE_CREDENTIALS_FILE=${GOOGLE_CREDENTIALS_FILE:-credentials.json}
+      - SPREADSHEET_ID=${SPREADSHEET_ID}
+    volumes:
+      - ./credentials.json:/app/credentials.json:ro
+      - ./logs:/app/logs:ro
+    restart: unless-stopped
+
+volumes:
+  logs:

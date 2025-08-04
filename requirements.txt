@@ -9,3 +9,5 @@ schedule
 pytz
 beautifulsoup4
 markdown
+streamlit
+plotly
