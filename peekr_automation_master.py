@@ -4,12 +4,12 @@ PEEKR AUTOMATION MASTER - ALL-IN-ONE SYSTEM
 ============================================
 
 This single file handles EVERYTHING:
-1. Lead Generation (Apify) - Monday & Wednesday 10PM (100+ leads per category)
-2. Email Outreach - Tuesday & Thursday 11 AM  
+1. Lead Generation (Apify) - Monday & Wednesday 10PM Dubai/18:00 UTC (100+ leads per category)
+2. Email Outreach - Tuesday & Thursday 11 AM Dubai/07:00 UTC  
 3. Real-time Reply Monitoring - 24/7 instant responses
-4. Follow-up Campaigns - Monday 11 AM (3-email limit)
+4. Follow-up Campaigns - Monday 11 AM Dubai/07:00 UTC (3-email limit)
 
-Timezone configurable via TIMEZONE environment variable
+Timezone configurable via TIMEZONE environment variable (schedules auto-convert to UTC)
 
 Just run this ONE file on your server and everything is automated!
 """
@@ -1241,19 +1241,19 @@ class PeekrAutomationMaster:
         timezone_name = Config.TIMEZONE
         logger.info(f"📅 Setting up ALL automated schedules in {timezone_name}...")
         
-        # Lead generation: Monday & Wednesday at 10PM
-        schedule.every().monday.at("22:00").do(self.run_apify_lead_generation)
-        schedule.every().wednesday.at("22:00").do(self.run_apify_lead_generation)
-        logger.info(f"📊 Scheduled: Lead generation - Monday & Wednesday at 10PM {timezone_name}")
+        # Lead generation: Monday & Wednesday at 10PM Dubai time (18:00 UTC)
+        schedule.every().monday.at("18:00").do(self.run_apify_lead_generation)
+        schedule.every().wednesday.at("18:00").do(self.run_apify_lead_generation)
+        logger.info(f"📊 Scheduled: Lead generation - Monday & Wednesday at 10PM {timezone_name} (18:00 UTC)")
         
-        # Email outreach: Tuesday & Thursday at 8 AM
-        schedule.every().tuesday.at("08:00").do(self.run_email_outreach)
-        schedule.every().thursday.at("08:00").do(self.run_email_outreach)
-        logger.info(f"📧 Scheduled: Email outreach - Tuesday & Thursday at 11 AM {timezone_name}")
+        # Email outreach: Tuesday & Thursday at 11 AM Dubai time (07:00 UTC)
+        schedule.every().tuesday.at("07:00").do(self.run_email_outreach)
+        schedule.every().thursday.at("07:00").do(self.run_email_outreach)
+        logger.info(f"📧 Scheduled: Email outreach - Tuesday & Thursday at 11 AM {timezone_name} (07:00 UTC)")
         
-        # Follow-up campaigns: Monday at 11 AM
-        schedule.every().monday.at("08:00").do(self.run_followup_campaign)
-        logger.info(f"🔄 Scheduled: Follow-up campaigns - Monday at 11 AM {timezone_name}")
+        # Follow-up campaigns: Monday at 11 AM Dubai time (07:00 UTC)
+        schedule.every().monday.at("07:00").do(self.run_followup_campaign)
+        logger.info(f"🔄 Scheduled: Follow-up campaigns - Monday at 11 AM {timezone_name} (07:00 UTC)")
         
         # Start real-time reply monitoring immediately
         self.start_realtime_reply_monitoring()
