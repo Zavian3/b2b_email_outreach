@@ -4,7 +4,7 @@ PEEKR AUTOMATION MASTER - ALL-IN-ONE SYSTEM
 ============================================
 
 This single file handles EVERYTHING:
-1. Lead Generation (Apify) - Tuesday & Wednesday 12:15 AM Dubai/20:15 UTC (100+ leads per category)
+1. Lead Generation (Apify) - Monday & Wednesday 11:30 PM Dubai/19:30 UTC (100+ leads per category)
 2. Email Outreach - Tuesday & Thursday 11 AM Dubai/07:00 UTC  
 3. Real-time Reply Monitoring - 24/7 instant responses
 4. Follow-up Campaigns - Monday 11 AM Dubai/07:00 UTC (3-email limit)
@@ -1241,10 +1241,10 @@ class PeekrAutomationMaster:
         timezone_name = Config.TIMEZONE
         logger.info(f"📅 Setting up ALL automated schedules in {timezone_name}...")
         
-        # Lead generation: Tuesday & Wednesday at 12:15 AM Dubai time (20:15 UTC)
-        schedule.every().monday.at("20:15").do(self.run_apify_lead_generation)
-        schedule.every().tuesday.at("20:15").do(self.run_apify_lead_generation)
-        logger.info(f"📊 Scheduled: Lead generation - Tuesday & Wednesday at 12:15 AM {timezone_name} (20:15 UTC)")
+        # Lead generation: Monday & Wednesday at 11:30 PM Dubai time (19:30 UTC)
+        schedule.every().monday.at("19:30").do(self.run_apify_lead_generation)
+        schedule.every().wednesday.at("19:30").do(self.run_apify_lead_generation)
+        logger.info(f"📊 Scheduled: Lead generation - Monday & Wednesday at 11:30 PM {timezone_name} (19:30 UTC)")
         
         # Email outreach: Tuesday & Thursday at 11 AM Dubai time (07:00 UTC)
         schedule.every().tuesday.at("07:00").do(self.run_email_outreach)
