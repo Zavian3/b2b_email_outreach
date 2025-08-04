@@ -41,13 +41,17 @@ class Config:
         """Validate that all required environment variables are set"""
         required_vars = [
             'OPENAI_API_KEY', 'EMAIL_ACCOUNT', 'EMAIL_PASSWORD', 
-            'SENDER_NAME', 'GOOGLE_CREDENTIALS_FILE', 'SPREADSHEET_ID'
+            'SENDER_NAME', 'SPREADSHEET_ID'
         ]
         
         missing_vars = []
         for var in required_vars:
             if not getattr(cls, var):
                 missing_vars.append(var)
+        
+        # Check for Google credentials (either file or JSON)
+        if not cls.GOOGLE_CREDENTIALS_FILE and not cls.GOOGLE_CREDENTIALS_JSON:
+            missing_vars.append('GOOGLE_CREDENTIALS_JSON (or GOOGLE_CREDENTIALS_FILE)')
         
         if missing_vars:
             raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
