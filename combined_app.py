@@ -40,19 +40,38 @@ class CombinedApp:
             # Import and run automation directly to avoid subprocess overhead
             from peekr_automation_master import PeekrAutomationMaster
             
+            # Use a flag to track successful initialization
+            automation_success = threading.Event()
+            automation_error = threading.Event()
+            error_message = None
+            
             def run_automation():
                 try:
+                    logger.info("🔧 Initializing automation engine...")
                     automation = PeekrAutomationMaster()
+                    logger.info("✅ Automation engine initialized successfully")
+                    automation_success.set()
                     automation.run_master_automation()
                 except Exception as e:
-                    logger.error(f"Automation engine error: {e}")
+                    nonlocal error_message
+                    error_message = str(e)
+                    logger.error(f"❌ Automation engine initialization failed: {e}")
+                    automation_error.set()
             
             # Start automation in background thread
             automation_thread = threading.Thread(target=run_automation, daemon=True)
             automation_thread.start()
             
-            logger.info("✅ Automation engine started successfully")
-            return True
+            # Wait for initialization to complete (max 30 seconds)
+            if automation_success.wait(timeout=30):
+                logger.info("✅ Automation engine started successfully")
+                return True
+            elif automation_error.is_set():
+                logger.error(f"❌ Automation engine failed to start: {error_message}")
+                return False
+            else:
+                logger.error("❌ Automation engine initialization timed out")
+                return False
             
         except Exception as e:
             logger.error(f"❌ Failed to start automation engine: {e}")
