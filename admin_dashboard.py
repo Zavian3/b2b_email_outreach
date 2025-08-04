@@ -409,7 +409,7 @@ class AdminDashboard:
             return leads_df, categories_df
             
         except Exception as e:
-            st.error(f"❌ Error loading data from Google Sheets: {str(e)}")
+            st.error(f"ERROR: Error loading data from Google Sheets: {str(e)}")
             return pd.DataFrame(), pd.DataFrame()
     
     def clean_leads_data(self, df):
@@ -592,11 +592,11 @@ class AdminDashboard:
     def extract_log_level(self, log_line):
         """Extract log level from log line"""
         log_line_upper = log_line.upper()
-        if 'ERROR' in log_line_upper or '❌' in log_line:
+        if 'ERROR' in log_line_upper or 'ERROR:' in log_line:
             return 'error'
         elif 'WARNING' in log_line_upper or 'WARN' in log_line_upper or '⚠️' in log_line:
             return 'warning'
-        elif 'SUCCESS' in log_line_upper or '✅' in log_line:
+        elif 'SUCCESS' in log_line_upper or 'SUCCESS:' in log_line:
             return 'success'
         elif 'INFO' in log_line_upper:
             return 'info'
@@ -969,7 +969,7 @@ def render_logs_viewer(dashboard):
         success_count = level_counts.get('success', 0)
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-title">✅ Success</div>
+            <div class="metric-title">SUCCESS: Success</div>
             <div class="metric-value" style="color: var(--color-success);">{success_count}</div>
         </div>
         """, unsafe_allow_html=True)
@@ -1044,10 +1044,10 @@ def render_prompt_management(dashboard):
             with col1_btn:
                 if st.button("💾 Save Changes", type="primary"):
                     if dashboard.save_prompt(selected_prompt, edited_content):
-                        st.success(f"✅ {selected_prompt} saved successfully!")
+                        st.success(f"SUCCESS: {selected_prompt} saved successfully!")
                         st.rerun()
                     else:
-                        st.error("❌ Failed to save prompt")
+                        st.error("ERROR: Failed to save prompt")
             
             with col2_btn:
                 if st.button("🔄 Reset"):
@@ -1138,7 +1138,7 @@ def render_system_status(dashboard):
     with col1:
         if st.button("🔄 Refresh Status"):
             st.cache_data.clear()
-            st.success("✅ System status refreshed!")
+            st.success("SUCCESS: System status refreshed!")
             st.rerun()
     
     with col2:

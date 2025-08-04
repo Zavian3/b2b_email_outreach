@@ -4,12 +4,12 @@ PEEKR AUTOMATION MASTER - ALL-IN-ONE SYSTEM
 ============================================
 
 This single file handles EVERYTHING:
-1. 📊 Lead Generation (Apify) - Sunday & Wednesday midnight
-2. 📧 Email Outreach - Tuesday & Thursday 11 AM  
-3. 📡 Real-time Reply Monitoring - 24/7 instant responses
-4. 🔄 Follow-up Campaigns - Monday 11 AM (3-email limit)
+1. Lead Generation (Apify) - Sunday & Wednesday midnight
+2. Email Outreach - Tuesday & Thursday 11 AM  
+3. Real-time Reply Monitoring - 24/7 instant responses
+4. Follow-up Campaigns - Monday 11 AM (3-email limit)
 
-🌍 Timezone configurable via TIMEZONE environment variable
+Timezone configurable via TIMEZONE environment variable
 
 Just run this ONE file on your server and everything is automated!
 """
@@ -88,7 +88,7 @@ def retry_with_backoff(func, max_retries=3, backoff_factor=2, exceptions=(Except
             if attempt == max_retries - 1:
                 raise e
             wait_time = backoff_factor ** attempt
-            logger.warning(f"🔄 Attempt {attempt + 1} failed: {e}. Retrying in {wait_time}s...")
+            logger.warning(f"RETRY Attempt {attempt + 1} failed: {e}. Retrying in {wait_time}s...")
             time.sleep(wait_time)
     return None
 
@@ -110,15 +110,15 @@ class PeekrAutomationMaster:
         # Set timezone from environment variable (configurable by client)
         try:
             self.timezone = pytz.timezone(Config.TIMEZONE)
-            logger.info(f"🌍 Timezone set to: {Config.TIMEZONE} ({self.timezone})")
+            logger.info(f"TIMEZONE: Timezone set to: {Config.TIMEZONE} ({self.timezone})")
         except pytz.exceptions.UnknownTimeZoneError:
-            logger.warning(f"⚠️ Unknown timezone '{Config.TIMEZONE}', falling back to UTC")
+            logger.warning(f"WARNING: Unknown timezone '{Config.TIMEZONE}', falling back to UTC")
             self.timezone = pytz.UTC
-            logger.info(f"🌍 Timezone set to: UTC (fallback)")
+            logger.info(f"TIMEZONE: Timezone set to: UTC (fallback)")
         
         # Test internet connectivity first
         if not test_internet_connectivity():
-            logger.error("❌ No internet connectivity detected. Please check your connection.")
+            logger.error("ERROR: No internet connectivity detected. Please check your connection.")
             raise ConnectionError("No internet connectivity")
         
         # Google Sheets connection with retry logic
@@ -128,7 +128,7 @@ class PeekrAutomationMaster:
             self.gspread_client = gspread.authorize(creds)
             self.sheet = self.gspread_client.open_by_key(Config.SPREADSHEET_ID)
             self.leads_worksheet = self.sheet.worksheet("Incoming Leads")
-            logger.info("✅ Google Sheets connection established successfully")
+            logger.info("SUCCESS: Google Sheets connection established successfully")
         
         try:
             retry_with_backoff(
@@ -137,8 +137,8 @@ class PeekrAutomationMaster:
                 exceptions=(ConnectionError, RequestException, NameResolutionError, socket.gaierror)
             )
         except Exception as e:
-            logger.error(f"❌ Failed to connect to Google Sheets after multiple attempts: {e}")
-            logger.error("🔧 Troubleshooting tips:")
+            logger.error(f"ERROR: Failed to connect to Google Sheets after multiple attempts: {e}")
+            logger.error("TROUBLESHOOTING: Troubleshooting tips:")
             logger.error("   1. Check internet connectivity")
             logger.error("   2. Verify Google credentials file")
             logger.error("   3. Try flushing DNS cache: sudo dscacheutil -flushcache (macOS)")
@@ -160,7 +160,7 @@ class PeekrAutomationMaster:
             'start_time': datetime.now(self.timezone)
         }
         
-        logger.info("🚀 Peekr Automation Master initialized - ALL systems ready!")
+        logger.info("READY: Peekr Automation Master initialized - ALL systems ready!")
     
     # ==========================================
     # 1. LEAD GENERATION (APIFY)
@@ -188,11 +188,11 @@ class PeekrAutomationMaster:
                     phone_hash = hashlib.md5(phone.encode()).hexdigest()
                     self.existing_leads_cache[phone_hash] = True
             
-            logger.info(f"📋 Loaded {len(self.existing_leads_cache)} existing leads for deduplication")
+            logger.info(f"LOADED: Loaded {len(self.existing_leads_cache)} existing leads for deduplication")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Error loading existing leads: {e}")
+            logger.error(f"ERROR: Error loading existing leads: {e}")
             return False
     
     def is_duplicate_lead(self, lead_data):
@@ -242,23 +242,23 @@ class PeekrAutomationMaster:
                 "skipClosedPlaces": False
             }
             
-            logger.info(f"📊 Searching Apify for '{category}' in '{location}' (max {max_results} results)")
+            logger.info(f"SEARCH: Searching Apify for '{category}' in '{location}' (max {max_results} results)")
             
             response = requests.post(url, headers=headers, data=json.dumps(payload), timeout=600)
             
-            logger.info(f"📡 Apify response status: {response.status_code}")
+            logger.info(f"API: Apify response status: {response.status_code}")
             
             if response.status_code == 201:  # Your original used 201, not 200
                 leads = response.json()
-                logger.info(f"📊 Apify returned {len(leads)} raw leads for {category} in {location}")
+                logger.info(f"RESULT: Apify returned {len(leads)} raw leads for {category} in {location}")
                 return leads
             else:
-                logger.error(f"❌ Apify API error: {response.status_code}")
-                logger.error(f"❌ Response content: {response.text}")
+                logger.error(f"ERROR: Apify API error: {response.status_code}")
+                logger.error(f"ERROR: Response content: {response.text}")
                 return []
                 
         except Exception as e:
-            logger.error(f"❌ Error calling Apify API: {e}")
+            logger.error(f"ERROR: Error calling Apify API: {e}")
             return []
     
     def process_lead_data(self, raw_leads, category, location):
@@ -316,7 +316,7 @@ class PeekrAutomationMaster:
             
             processed_leads.append(processed_lead)
         
-        logger.info(f"✅ Processed {len(processed_leads)} unique leads")
+        logger.info(f"SUCCESS: Processed {len(processed_leads)} unique leads")
         return processed_leads
     
     def save_leads_to_sheet(self, leads):
@@ -362,12 +362,12 @@ class PeekrAutomationMaster:
             if rows_to_insert:
                 range_name = f"A{start_row}:V{start_row + len(rows_to_insert) - 1}"
                 self.leads_worksheet.update(range_name, rows_to_insert)
-                logger.info(f"✅ Saved {len(rows_to_insert)} leads to Google Sheets")
+                logger.info(f"SUCCESS: Saved {len(rows_to_insert)} leads to Google Sheets")
             
             return len(rows_to_insert)
             
         except Exception as e:
-            logger.error(f"❌ Error saving leads to sheet: {e}")
+            logger.error(f"ERROR: Error saving leads to sheet: {e}")
             return 0
     
     def run_apify_lead_generation(self):
