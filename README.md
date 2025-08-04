@@ -43,7 +43,7 @@ Automated-B2B-Lead-Generation-Outreach/
 ## 🔄 Automated Schedule
 
 ### 📊 **Lead Generation** 
-- **Monday & Wednesday at 6:30 PM UTC** (10:30 PM Dubai time): Apify scrapes 100+ leads per category (500+ total leads)
+- **Monday & Wednesday at 7:00 PM UTC** (11:00 PM Dubai time): Apify scrapes 100+ leads per category (500+ total leads)
 - Automatically stores results in Google Sheets
 
 ### 📧 **Email Outreach**
@@ -167,8 +167,8 @@ Edit `peekr_automation_master.py` to modify schedules:
 
 ```python
 # Lead generation schedule - 100+ leads per category (UTC times)
-schedule.every().monday.at("18:30").do(self.run_apify_lead_generation)    # 6:30 PM UTC
-schedule.every().wednesday.at("18:30").do(self.run_apify_lead_generation) # 6:30 PM UTC
+schedule.every().monday.at("19:00").do(self.run_apify_lead_generation)    # 7:00 PM UTC
+schedule.every().wednesday.at("19:00").do(self.run_apify_lead_generation) # 7:00 PM UTC
 
 # Email outreach schedule (Dubai times converted to UTC)
 schedule.every().tuesday.at("07:00").do(self.run_email_outreach)   # 11AM Dubai
