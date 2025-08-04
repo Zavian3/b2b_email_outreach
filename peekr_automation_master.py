@@ -4,7 +4,7 @@ PEEKR AUTOMATION MASTER - ALL-IN-ONE SYSTEM
 ============================================
 
 This single file handles EVERYTHING:
-1. Lead Generation (Apify) - Sunday & Wednesday midnight
+1. Lead Generation (Apify) - Monday & Wednesday 10PM (100+ leads per category)
 2. Email Outreach - Tuesday & Thursday 11 AM  
 3. Real-time Reply Monitoring - 24/7 instant responses
 4. Follow-up Campaigns - Monday 11 AM (3-email limit)
@@ -395,8 +395,8 @@ class PeekrAutomationMaster:
                 return
             
             total_leads_generated = 0
-            target_leads = 300
-            leads_per_search = 75
+            target_leads = 500  # Increased to accommodate 100+ leads per category
+            leads_per_search = 100  # At least 100 leads per category as requested
             
             logger.info(f"🎯 Target: {target_leads} leads with <10% duplication")
             
@@ -1241,10 +1241,10 @@ class PeekrAutomationMaster:
         timezone_name = Config.TIMEZONE
         logger.info(f"📅 Setting up ALL automated schedules in {timezone_name}...")
         
-        # Lead generation: Sunday & Wednesday at midnight
-        schedule.every().sunday.at("00:00").do(self.run_apify_lead_generation)
-        schedule.every().wednesday.at("00:00").do(self.run_apify_lead_generation)
-        logger.info(f"📊 Scheduled: Lead generation - Sunday & Wednesday at midnight {timezone_name}")
+        # Lead generation: Monday & Wednesday at 10PM
+        schedule.every().monday.at("22:00").do(self.run_apify_lead_generation)
+        schedule.every().wednesday.at("22:00").do(self.run_apify_lead_generation)
+        logger.info(f"📊 Scheduled: Lead generation - Monday & Wednesday at 10PM {timezone_name}")
         
         # Email outreach: Tuesday & Thursday at 8 AM
         schedule.every().tuesday.at("08:00").do(self.run_email_outreach)

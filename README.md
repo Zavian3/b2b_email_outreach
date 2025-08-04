@@ -43,7 +43,7 @@ Automated-B2B-Lead-Generation-Outreach/
 ## 🔄 Automated Schedule
 
 ### 📊 **Lead Generation** 
-- **Sunday & Wednesday at midnight**: Apify scrapes 200-400 new leads
+- **Monday & Wednesday at 10PM**: Apify scrapes 100+ leads per category (500+ total leads)
 - Automatically stores results in Google Sheets
 
 ### 📧 **Email Outreach**
@@ -163,16 +163,16 @@ Required worksheets:
 
 ## 📋 Schedule Customization
 
-Edit `main_scheduler.py` to modify schedules:
+Edit `peekr_automation_master.py` to modify schedules:
 
 ```python
-# Lead generation schedule
-schedule.every().sunday.at("00:00").do(self.run_apify_lead_generation)
-schedule.every().wednesday.at("00:00").do(self.run_apify_lead_generation)
+# Lead generation schedule - 100+ leads per category
+schedule.every().monday.at("22:00").do(self.run_apify_lead_generation)
+schedule.every().wednesday.at("22:00").do(self.run_apify_lead_generation)
 
 # Email outreach schedule  
-schedule.every().tuesday.at("09:00").do(self.run_email_outreach)
-schedule.every().thursday.at("09:00").do(self.run_email_outreach)
+schedule.every().tuesday.at("08:00").do(self.run_email_outreach)
+schedule.every().thursday.at("08:00").do(self.run_email_outreach)
 ```
 
 ## 🛠️ Troubleshooting
