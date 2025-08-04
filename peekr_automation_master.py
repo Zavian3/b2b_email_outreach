@@ -50,6 +50,7 @@ from prompt_loader import (
     generate_not_interested_reply,
     generate_followup_prompt
 )
+from credentials_helper import get_google_sheets_client
 
 # ==========================================
 # LOGGING SETUP
@@ -121,11 +122,11 @@ class PeekrAutomationMaster:
             logger.error("ERROR: No internet connectivity detected. Please check your connection.")
             raise ConnectionError("No internet connectivity")
         
-        # Google Sheets connection with retry logic
+        # Google Sheets connection with retry logic - using environment variables only
         def connect_to_sheets():
-            scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-            creds = ServiceAccountCredentials.from_json_keyfile_name(Config.GOOGLE_CREDENTIALS_FILE, scope)
-            self.gspread_client = gspread.authorize(creds)
+            self.gspread_client = get_google_sheets_client()
+            if not self.gspread_client:
+                raise Exception("Failed to create Google Sheets client from environment variables")
             self.sheet = self.gspread_client.open_by_key(Config.SPREADSHEET_ID)
             self.leads_worksheet = self.sheet.worksheet("Incoming Leads")
             logger.info("SUCCESS: Google Sheets connection established successfully")

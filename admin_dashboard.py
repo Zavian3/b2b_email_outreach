@@ -31,6 +31,7 @@ import subprocess
 import psutil
 import glob
 import requests
+from credentials_helper import get_google_sheets_client
 
 # Load environment variables
 load_dotenv()
@@ -380,17 +381,12 @@ class AdminDashboard:
     
     @st.cache_data(show_spinner=False)
     def load_google_sheets_data(_self):
-        """Load data from Google Sheets with proper error handling"""
+        """Load data from Google Sheets using environment variables only"""
         try:
-            # Get credentials
-            if os.getenv("GOOGLE_CREDENTIALS_FILE"):
-                # Use local credentials file
-                scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-                creds = Credentials.from_service_account_file(os.getenv("GOOGLE_CREDENTIALS_FILE"), scopes=scope)
-            else:
-                raise ValueError("Google credentials not found")
-            
-            client = gspread.authorize(creds)
+            # Use credentials helper that works with environment variables
+            client = get_google_sheets_client()
+            if not client:
+                raise ValueError("Failed to create Google Sheets client from environment variables")
             
             # Load data from both sheets
             spreadsheet = client.open_by_key(_self.spreadsheet_id)
@@ -626,9 +622,25 @@ def render_overview_metrics(leads_df, categories_df):
     
     # Calculate metrics
     total_leads = len(leads_df)
-    valid_emails = len(leads_df[leads_df['Valid Email'] != ''])
-    emails_sent = len(leads_df[leads_df['Status'] == 'Sent'])
-    responses_received = len(leads_df[leads_df['Mail Received'] == 'YES'])
+    
+    # Handle missing columns gracefully
+    if 'Valid Email' in leads_df.columns:
+        valid_emails = len(leads_df[leads_df['Valid Email'] != ''])
+    elif 'Email' in leads_df.columns:
+        valid_emails = len(leads_df[leads_df['Email'] != ''])
+    else:
+        valid_emails = 0
+    
+    if 'Status' in leads_df.columns:
+        emails_sent = len(leads_df[leads_df['Status'] == 'Sent'])
+    else:
+        emails_sent = 0
+    
+    if 'Mail Received' in leads_df.columns:
+        responses_received = len(leads_df[leads_df['Mail Received'] == 'YES'])
+    else:
+        responses_received = 0
+    
     active_campaigns = len(categories_df)
     
     # Response rate

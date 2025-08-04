@@ -14,7 +14,7 @@ from config import Config
 def create_credentials_from_env():
     """Create credentials from environment variable (base64 encoded JSON)"""
     try:
-        # Try to get credentials from environment variable
+        # ONLY use environment variable - no file fallback
         if Config.GOOGLE_CREDENTIALS_JSON:
             # Decode base64 JSON
             credentials_json = base64.b64decode(Config.GOOGLE_CREDENTIALS_JSON).decode('utf-8')
@@ -27,12 +27,8 @@ def create_credentials_from_env():
             
             return temp_cred_file
         
-        # Fallback to local file
-        elif os.path.exists(Config.GOOGLE_CREDENTIALS_FILE):
-            return Config.GOOGLE_CREDENTIALS_FILE
-        
         else:
-            raise FileNotFoundError("No Google credentials found")
+            raise FileNotFoundError("GOOGLE_CREDENTIALS_JSON environment variable not found")
             
     except Exception as e:
         print(f"ERROR: Failed to create credentials: {e}")
