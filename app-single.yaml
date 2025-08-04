@@ -1,7 +1,6 @@
-name: peekr-b2b-automation
+name: peekr-automation-single
 services:
-- name: web-dashboard-with-automation
-  source_dir: /
+- name: dashboard-and-automation
   github:
     repo: Zavian3/b2b_email_outreach
     branch: main
