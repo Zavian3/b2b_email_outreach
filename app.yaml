@@ -28,7 +28,10 @@ envs:
   value: "993"
 - key: GOOGLE_CREDENTIALS_FILE
   scope: RUN_TIME
-  value: "credentials.json"
+  value: "peekr-465815-94dae74a243d.json"
+- key: GOOGLE_CREDENTIALS_JSON
+  scope: RUN_TIME
+  type: SECRET
 - key: SPREADSHEET_ID
   scope: RUN_TIME
   type: SECRET

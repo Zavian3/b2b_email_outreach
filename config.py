@@ -22,7 +22,8 @@ class Config:
     SENDER_EMAIL = os.getenv('SENDER_EMAIL')
     
     # Google Sheets Configuration
-    GOOGLE_CREDENTIALS_FILE = os.getenv('GOOGLE_CREDENTIALS_FILE')
+    GOOGLE_CREDENTIALS_FILE = os.getenv('GOOGLE_CREDENTIALS_FILE', 'peekr-465815-94dae74a243d.json')
+    GOOGLE_CREDENTIALS_JSON = os.getenv('GOOGLE_CREDENTIALS_JSON')  # Base64 encoded JSON
     SPREADSHEET_ID = os.getenv('SPREADSHEET_ID')
     
     # Apify Configuration

@@ -41,6 +41,13 @@ Thumbs.db
 # Logs
 *.log
 
-# Credentials (backup safety)
-*.json
+# Credentials (NEVER commit these!)
+credentials.json
+service-account-*.json
+*-credentials.json
+peekr-*.json
+encoded_credentials.txt
+
+# But allow other JSON files if needed
+!package.json
 !requirements.txt
