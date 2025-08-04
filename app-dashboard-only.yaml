@@ -1,12 +1,12 @@
-name: peekr-automation-single
+name: peekr-dashboard-only
 services:
-- name: dashboard-and-automation
+- name: admin-dashboard
   source_dir: /
   github:
     repo: Zavian3/b2b_email_outreach
     branch: main
     deploy_on_push: true
-  run_command: python3 combined_app.py
+  run_command: streamlit run admin_dashboard.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
   environment_slug: python
   instance_count: 1
   instance_size_slug: basic-xxs
