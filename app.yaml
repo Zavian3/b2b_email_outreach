@@ -9,6 +9,8 @@ services:
   build_command: pip install -r requirements.txt
   run_command: python3 simple_dashboard.py
   environment_slug: python
+  engines:
+    python: "3.11.5"
   instance_count: 1
   instance_size_slug: basic-xxs
   http_port: 8080
