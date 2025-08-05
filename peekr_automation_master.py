@@ -4,7 +4,7 @@ PEEKR AUTOMATION MASTER - ALL-IN-ONE SYSTEM
 ============================================
 
 This single file handles EVERYTHING:
-1. Lead Generation (Apify) - Monday & Wednesday 11:30 PM Dubai/19:30 UTC (100+ leads per category)
+1. Lead Generation (Apify) - Monday & Wednesday 11:30 PM Dubai/19:30 UTC (100+ leads per ALL categories)
 2. Email Outreach - Tuesday & Thursday 11 AM Dubai/07:00 UTC  
 3. Real-time Reply Monitoring - 24/7 instant responses
 4. Follow-up Campaigns - Monday 11 AM Dubai/07:00 UTC (3-email limit)
@@ -395,21 +395,22 @@ class PeekrAutomationMaster:
                 return
             
             total_leads_generated = 0
-            target_leads = 500  # Increased to accommodate 100+ leads per category
+            total_categories = len(categories_df)
             leads_per_search = 100  # At least 100 leads per category as requested
+            processed_categories = 0
             
-            logger.info(f"🎯 Target: {target_leads} leads with <10% duplication")
+            logger.info(f"🎯 Processing ALL {total_categories} categories with 100+ leads each")
             
             # Process each category and location
             for index, row in categories_df.iterrows():
-                if total_leads_generated >= target_leads:
-                    break
-                
                 location = str(row.get('Location', '')).strip()
                 category = str(row.get('Categories', '')).strip()
                 
                 if not location or not category:
                     continue
+                
+                processed_categories += 1
+                logger.info(f"🔍 Processing category {processed_categories}/{total_categories}: {category} in {location}")
                 
                 # Search for leads
                 raw_leads = self.search_leads_with_apify(location, category, leads_per_search)
@@ -419,8 +420,11 @@ class PeekrAutomationMaster:
                     saved_count = self.save_leads_to_sheet(processed_leads)
                     total_leads_generated += saved_count
                     
-                    logger.info(f"📈 Progress: {total_leads_generated}/{target_leads} leads")
-                    time.sleep(10)  # Rate limiting
+                    logger.info(f"✅ Category {processed_categories}/{total_categories} complete: {saved_count} leads added (Total: {total_leads_generated})")
+                else:
+                    logger.warning(f"⚠️ No leads found for {category} in {location}")
+                    
+                time.sleep(10)  # Rate limiting
             
             logger.info(f"🎉 Lead generation completed! Generated {total_leads_generated} new leads")
             
