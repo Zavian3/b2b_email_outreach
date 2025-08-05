@@ -607,7 +607,7 @@ def render_header():
     col1, col2 = st.columns([4, 1])
     with col1:
         st.markdown("**Advanced Analytics & Management Interface**")
-        st.markdown(f"*Last updated: {st.session_state.last_refresh.strftime('%H:%M:%S') if st.session_state.last_refresh else 'Never'}*")
+        st.markdown(f"*Last updated: {st.session_state.last_refresh.strftime('%A, %B %d, %Y, %H:%M:%S') if st.session_state.last_refresh else 'Never'}*")
     with col2:
         if st.button("🔄 Refresh Data", type="primary"):
             st.cache_data.clear()
