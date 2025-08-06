@@ -1,0 +1,19 @@
+[
+    {
+        "id": "peekr-main",
+        "name": "Muhammad from Peekr",
+        "email": "info@peekr.io",
+        "password": "Peekr123#4)*",
+        "smtp_server": "mail.peekr.io",
+        "smtp_port": 465,
+        "imap_server": "mail.peekr.io",
+        "imap_port": 993,
+        "is_active": true,
+        "created_at": "2025-01-08T00:00:00Z",
+        "last_used": null,
+        "status": "active",
+        "daily_limit": 100,
+        "sent_today": 0,
+        "notes": "Primary Peekr email account"
+    }
+]

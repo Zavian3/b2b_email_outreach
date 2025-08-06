@@ -48,9 +48,6 @@ service-account-*.json
 peekr-*.json
 encoded_credentials.txt
 
-# Email Accounts Configuration (contains passwords!)
-email_accounts.json
-
 # But allow other JSON files if needed
 !package.json
 !requirements.txt
