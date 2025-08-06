@@ -1262,6 +1262,35 @@ def render_email_accounts_management():
     with tab2:
         st.subheader("Add New Email Account")
         
+        # Email preset buttons (OUTSIDE the form)
+        st.markdown("**🔧 Quick Setup Presets:**")
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            if st.button("📧 Gmail", help="Use Gmail settings"):
+                st.session_state.preset_smtp_server = "smtp.gmail.com"
+                st.session_state.preset_smtp_port = 587
+                st.session_state.preset_imap_server = "imap.gmail.com"
+                st.session_state.preset_imap_port = 993
+                st.rerun()
+        
+        with col2:
+            if st.button("📧 Outlook", help="Use Outlook settings"):
+                st.session_state.preset_smtp_server = "smtp-mail.outlook.com"
+                st.session_state.preset_smtp_port = 587
+                st.session_state.preset_imap_server = "outlook.office365.com"
+                st.session_state.preset_imap_port = 993
+                st.rerun()
+        
+        with col3:
+            if st.button("🔄 Clear", help="Clear preset values"):
+                for key in ['preset_smtp_server', 'preset_smtp_port', 'preset_imap_server', 'preset_imap_port']:
+                    if key in st.session_state:
+                        del st.session_state[key]
+                st.rerun()
+        
+        st.markdown("---")
+        
         with st.form("add_email_account"):
             col1, col2 = st.columns(2)
             
@@ -1272,10 +1301,28 @@ def render_email_accounts_management():
                 daily_limit = st.number_input("Daily Send Limit", min_value=1, max_value=1000, value=100)
             
             with col2:
-                smtp_server = st.text_input("SMTP Server *", placeholder="mail.peekr.io")
-                smtp_port = st.number_input("SMTP Port *", min_value=1, max_value=65535, value=465)
-                imap_server = st.text_input("IMAP Server *", placeholder="mail.peekr.io")
-                imap_port = st.number_input("IMAP Port *", min_value=1, max_value=65535, value=993)
+                smtp_server = st.text_input(
+                    "SMTP Server *", 
+                    value=st.session_state.get('preset_smtp_server', ''),
+                    placeholder="mail.peekr.io"
+                )
+                smtp_port = st.number_input(
+                    "SMTP Port *", 
+                    min_value=1, 
+                    max_value=65535, 
+                    value=st.session_state.get('preset_smtp_port', 465)
+                )
+                imap_server = st.text_input(
+                    "IMAP Server *", 
+                    value=st.session_state.get('preset_imap_server', ''),
+                    placeholder="mail.peekr.io"
+                )
+                imap_port = st.number_input(
+                    "IMAP Port *", 
+                    min_value=1, 
+                    max_value=65535, 
+                    value=st.session_state.get('preset_imap_port', 993)
+                )
             
             notes = st.text_area("Notes (Optional)", placeholder="Additional notes about this account...")
             
