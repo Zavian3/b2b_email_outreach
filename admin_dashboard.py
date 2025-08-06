@@ -32,6 +32,8 @@ import psutil
 import glob
 import requests
 from credentials_helper import get_google_sheets_client
+from email_accounts import EmailAccountManager, EmailAccount
+import uuid
 
 # Load environment variables
 load_dotenv()
@@ -1175,6 +1177,271 @@ def render_system_status(dashboard):
             else:
                 st.warning("No logs found")
 
+def render_email_accounts_management():
+    """Render email accounts management interface"""
+    st.markdown('<div class="section-header">📧 Email Account Management</div>', unsafe_allow_html=True)
+    
+    # Initialize email account manager
+    try:
+        spreadsheet_id = os.getenv('SPREADSHEET_ID')
+        if not spreadsheet_id:
+            st.error("❌ SPREADSHEET_ID not configured in environment variables")
+            return
+        
+        email_manager = EmailAccountManager(spreadsheet_id)
+        
+        # Create default account from env if none exist
+        email_manager.create_default_account_from_env()
+        
+    except Exception as e:
+        st.error(f"❌ Error initializing email manager: {e}")
+        return
+    
+    # Tab layout for accounts
+    tab1, tab2 = st.tabs(["📋 Manage Accounts", "➕ Add New Account"])
+    
+    with tab1:
+        st.markdown("### 📋 Current Email Accounts")
+        
+        try:
+            accounts = email_manager.get_all_accounts()
+            
+            if not accounts:
+                st.info("📭 No email accounts configured yet. Add your first account in the 'Add New Account' tab.")
+                return
+            
+            # Display accounts in cards
+            for account in accounts:
+                with st.container():
+                    col1, col2, col3, col4 = st.columns([3, 2, 1, 1])
+                    
+                    with col1:
+                        # Account info
+                        status_icon = "🟢" if account.is_active else "⚫"
+                        st.markdown(f"**{status_icon} {account.name}**")
+                        st.markdown(f"📧 {account.email}")
+                        st.markdown(f"👤 {account.sender_name}")
+                    
+                    with col2:
+                        # Technical details
+                        st.markdown(f"**SMTP:** {account.smtp_server}:{account.smtp_port}")
+                        st.markdown(f"**IMAP:** {account.imap_server}:{account.imap_port}")
+                        if account.last_used:
+                            last_used = datetime.fromisoformat(account.last_used).strftime('%Y-%m-%d %H:%M')
+                            st.markdown(f"**Last Used:** {last_used}")
+                    
+                    with col3:
+                        # Set Active button
+                        if not account.is_active:
+                            if st.button("🎯 Set Active", key=f"activate_{account.id}"):
+                                try:
+                                    email_manager.set_active_account(account.id)
+                                    st.success(f"✅ Set {account.name} as active account")
+                                    st.rerun()
+                                except Exception as e:
+                                    st.error(f"❌ Error setting active account: {e}")
+                        else:
+                            st.markdown("**🟢 ACTIVE**")
+                    
+                    with col4:
+                        # Action buttons
+                        col4a, col4b = st.columns(2)
+                        
+                        with col4a:
+                            if st.button("✏️", key=f"edit_{account.id}", help="Edit Account"):
+                                st.session_state[f"edit_account_{account.id}"] = True
+                                st.rerun()
+                        
+                        with col4b:
+                            if account.id != "default":  # Don't allow deleting default account
+                                if st.button("🗑️", key=f"delete_{account.id}", help="Delete Account"):
+                                    if st.session_state.get(f"confirm_delete_{account.id}", False):
+                                        try:
+                                            email_manager.delete_account(account.id)
+                                            st.success(f"✅ Deleted account: {account.name}")
+                                            if f"confirm_delete_{account.id}" in st.session_state:
+                                                del st.session_state[f"confirm_delete_{account.id}"]
+                                            st.rerun()
+                                        except Exception as e:
+                                            st.error(f"❌ Error deleting account: {e}")
+                                    else:
+                                        st.session_state[f"confirm_delete_{account.id}"] = True
+                                        st.warning("⚠️ Click again to confirm deletion")
+                    
+                    # Edit form (if editing)
+                    if st.session_state.get(f"edit_account_{account.id}", False):
+                        st.markdown("---")
+                        st.markdown(f"### ✏️ Edit Account: {account.name}")
+                        
+                        with st.form(f"edit_form_{account.id}"):
+                            col1, col2 = st.columns(2)
+                            
+                            with col1:
+                                new_name = st.text_input("Account Name", value=account.name)
+                                new_email = st.text_input("Email Address", value=account.email)
+                                new_password = st.text_input("Password", value=account.password, type="password")
+                                new_sender_name = st.text_input("Sender Name", value=account.sender_name)
+                            
+                            with col2:
+                                new_smtp_server = st.text_input("SMTP Server", value=account.smtp_server)
+                                new_smtp_port = st.number_input("SMTP Port", value=account.smtp_port, min_value=1, max_value=65535)
+                                new_imap_server = st.text_input("IMAP Server", value=account.imap_server)
+                                new_imap_port = st.number_input("IMAP Port", value=account.imap_port, min_value=1, max_value=65535)
+                            
+                            col_submit, col_cancel = st.columns(2)
+                            
+                            with col_submit:
+                                if st.form_submit_button("💾 Save Changes", type="primary"):
+                                    try:
+                                        updated_account = EmailAccount(
+                                            id=account.id,
+                                            name=new_name,
+                                            email=new_email,
+                                            password=new_password,
+                                            smtp_server=new_smtp_server,
+                                            smtp_port=new_smtp_port,
+                                            imap_server=new_imap_server,
+                                            imap_port=new_imap_port,
+                                            sender_name=new_sender_name,
+                                            is_active=account.is_active,
+                                            created_at=account.created_at,
+                                            last_used=account.last_used
+                                        )
+                                        
+                                        email_manager.update_account(updated_account)
+                                        st.success("✅ Account updated successfully!")
+                                        del st.session_state[f"edit_account_{account.id}"]
+                                        st.rerun()
+                                    except Exception as e:
+                                        st.error(f"❌ Error updating account: {e}")
+                            
+                            with col_cancel:
+                                if st.form_submit_button("❌ Cancel"):
+                                    del st.session_state[f"edit_account_{account.id}"]
+                                    st.rerun()
+                    
+                    st.markdown("---")
+        
+        except Exception as e:
+            st.error(f"❌ Error loading email accounts: {e}")
+    
+    with tab2:
+        st.markdown("### ➕ Add New Email Account")
+        
+        with st.form("add_email_account"):
+            st.markdown("#### 📧 Basic Information")
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                name = st.text_input("Account Name *", placeholder="e.g., Sales Team Account")
+                email = st.text_input("Email Address *", placeholder="sales@company.com")
+                password = st.text_input("Password *", type="password")
+                sender_name = st.text_input("Sender Name *", placeholder="John from Company")
+            
+            with col2:
+                st.markdown("#### ⚙️ Server Configuration")
+                smtp_server = st.text_input("SMTP Server *", placeholder="mail.company.com")
+                smtp_port = st.number_input("SMTP Port *", value=465, min_value=1, max_value=65535)
+                imap_server = st.text_input("IMAP Server *", placeholder="mail.company.com")
+                imap_port = st.number_input("IMAP Port *", value=993, min_value=1, max_value=65535)
+            
+            st.markdown("#### 📋 Common Email Provider Presets")
+            preset_col1, preset_col2, preset_col3 = st.columns(3)
+            
+            with preset_col1:
+                if st.button("📧 Gmail", help="Use Gmail settings"):
+                    st.session_state.preset_smtp_server = "smtp.gmail.com"
+                    st.session_state.preset_smtp_port = 587
+                    st.session_state.preset_imap_server = "imap.gmail.com"
+                    st.session_state.preset_imap_port = 993
+            
+            with preset_col2:
+                if st.button("📧 Outlook", help="Use Outlook settings"):
+                    st.session_state.preset_smtp_server = "smtp.office365.com"
+                    st.session_state.preset_smtp_port = 587
+                    st.session_state.preset_imap_server = "outlook.office365.com"
+                    st.session_state.preset_imap_port = 993
+            
+            with preset_col3:
+                if st.button("📧 Custom", help="Clear presets"):
+                    if 'preset_smtp_server' in st.session_state:
+                        del st.session_state.preset_smtp_server
+                    if 'preset_smtp_port' in st.session_state:
+                        del st.session_state.preset_smtp_port
+                    if 'preset_imap_server' in st.session_state:
+                        del st.session_state.preset_imap_server
+                    if 'preset_imap_port' in st.session_state:
+                        del st.session_state.preset_imap_port
+            
+            # Apply presets if they exist
+            if 'preset_smtp_server' in st.session_state:
+                smtp_server = st.session_state.preset_smtp_server
+            if 'preset_smtp_port' in st.session_state:
+                smtp_port = st.session_state.preset_smtp_port
+            if 'preset_imap_server' in st.session_state:
+                imap_server = st.session_state.preset_imap_server
+            if 'preset_imap_port' in st.session_state:
+                imap_port = st.session_state.preset_imap_port
+            
+            set_as_active = st.checkbox("🎯 Set as active account immediately", value=False)
+            
+            if st.form_submit_button("➕ Add Email Account", type="primary"):
+                try:
+                    # Create new account
+                    account_id = str(uuid.uuid4())[:8]
+                    new_account = EmailAccount(
+                        id=account_id,
+                        name=name,
+                        email=email,
+                        password=password,
+                        smtp_server=smtp_server,
+                        smtp_port=smtp_port,
+                        imap_server=imap_server,
+                        imap_port=imap_port,
+                        sender_name=sender_name,
+                        is_active=set_as_active
+                    )
+                    
+                    email_manager.add_account(new_account)
+                    
+                    if set_as_active:
+                        email_manager.set_active_account(account_id)
+                    
+                    st.success(f"✅ Successfully added email account: {name}")
+                    st.balloons()
+                    st.rerun()
+                    
+                except Exception as e:
+                    st.error(f"❌ Error adding email account: {e}")
+        
+        # Help section
+        with st.expander("🔧 Help & Common Settings"):
+            st.markdown("""
+            #### 📧 Common Email Provider Settings:
+            
+            **Gmail:**
+            - SMTP: smtp.gmail.com:587 (TLS) or smtp.gmail.com:465 (SSL)
+            - IMAP: imap.gmail.com:993
+            - Note: Enable "App Passwords" for Gmail accounts with 2FA
+            
+            **Outlook/Hotmail:**
+            - SMTP: smtp.office365.com:587
+            - IMAP: outlook.office365.com:993
+            
+            **Yahoo:**
+            - SMTP: smtp.mail.yahoo.com:587 or :465
+            - IMAP: imap.mail.yahoo.com:993
+            
+            **Custom/Business Email:**
+            - Check with your email provider for SMTP/IMAP settings
+            - Common ports: 25, 465 (SSL), 587 (TLS), 993 (IMAP SSL), 143 (IMAP)
+            
+            #### 🔐 Security Notes:
+            - Use app-specific passwords when available
+            - Enable "Less Secure App Access" if required (not recommended)
+            - Consider using OAuth2 for enhanced security (future feature)
+            """)
+
 def main():
     """Main dashboard application"""
     dashboard = AdminDashboard()
@@ -1187,7 +1454,7 @@ def main():
         st.markdown("### 🧭 Navigation")
         selected_tab = st.radio(
             "Choose section:",
-            ["📊 Analytics", "👥 Leads", "📝 Prompts", "📋 Logs", "⚙️ System"],
+            ["📊 Analytics", "👥 Leads", "📧 Email Accounts", "📝 Prompts", "📋 Logs", "⚙️ System"],
             label_visibility="collapsed"
         )
         
@@ -1200,7 +1467,14 @@ def main():
         
         if not leads_df.empty:
             st.metric("Total Leads", len(leads_df))
-            st.metric("Valid Emails", len(leads_df[leads_df['Valid Email'] != '']))
+            # Handle missing columns gracefully
+            if 'Valid Email' in leads_df.columns:
+                valid_emails = len(leads_df[leads_df['Valid Email'] != ''])
+            elif 'Email' in leads_df.columns:
+                valid_emails = len(leads_df[leads_df['Email'] != ''])
+            else:
+                valid_emails = 0
+            st.metric("Valid Emails", valid_emails)
             st.metric("Active Categories", len(categories_df))
     
     # Main content based on selected tab
@@ -1211,6 +1485,9 @@ def main():
         
     elif selected_tab == "👥 Leads":
         render_leads_management(leads_df)
+        
+    elif selected_tab == "📧 Email Accounts":
+        render_email_accounts_management()
         
     elif selected_tab == "📝 Prompts":
         render_prompt_management(dashboard)

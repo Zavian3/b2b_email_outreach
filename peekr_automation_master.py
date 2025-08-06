@@ -51,6 +51,7 @@ from prompt_loader import (
     generate_followup_prompt
 )
 from credentials_helper import get_google_sheets_client
+from email_accounts import EmailAccountManager, EmailAccount
 
 # ==========================================
 # LOGGING SETUP
@@ -131,6 +132,11 @@ class PeekrAutomationMaster:
             self.leads_worksheet = self.sheet.worksheet("Incoming Leads")
             logger.info("SUCCESS: Google Sheets connection established successfully")
         
+        # Initialize email account manager
+        self.email_manager = EmailAccountManager(Config.SPREADSHEET_ID)
+        # Create default account from env if none exist
+        self.email_manager.create_default_account_from_env()
+        
         try:
             retry_with_backoff(
                 connect_to_sheets,
@@ -162,6 +168,48 @@ class PeekrAutomationMaster:
         }
         
         logger.info("READY: Peekr Automation Master initialized - ALL systems ready!")
+    
+    def get_active_email_account(self):
+        """Get the currently active email account configuration"""
+        try:
+            active_account = self.email_manager.get_active_account()
+            if not active_account:
+                # Fallback to environment variables if no active account
+                logger.warning("⚠️ No active email account found, falling back to environment variables")
+                return {
+                    'email': Config.EMAIL_ACCOUNT,
+                    'password': Config.EMAIL_PASSWORD,
+                    'smtp_server': Config.SMTP_SERVER,
+                    'smtp_port': Config.SMTP_PORT,
+                    'imap_server': Config.IMAP_SERVER,
+                    'imap_port': Config.IMAP_PORT,
+                    'sender_name': Config.SENDER_NAME,
+                    'sender_email': Config.SENDER_EMAIL or Config.EMAIL_ACCOUNT
+                }
+            
+            return {
+                'email': active_account.email,
+                'password': active_account.password,
+                'smtp_server': active_account.smtp_server,
+                'smtp_port': active_account.smtp_port,
+                'imap_server': active_account.imap_server,
+                'imap_port': active_account.imap_port,
+                'sender_name': active_account.sender_name,
+                'sender_email': active_account.email
+            }
+        except Exception as e:
+            logger.error(f"❌ Error getting active email account: {e}")
+            # Fallback to environment variables
+            return {
+                'email': Config.EMAIL_ACCOUNT,
+                'password': Config.EMAIL_PASSWORD,
+                'smtp_server': Config.SMTP_SERVER,
+                'smtp_port': Config.SMTP_PORT,
+                'imap_server': Config.IMAP_SERVER,
+                'imap_port': Config.IMAP_PORT,
+                'sender_name': Config.SENDER_NAME,
+                'sender_email': Config.SENDER_EMAIL or Config.EMAIL_ACCOUNT
+            }
     
     # ==========================================
     # 1. LEAD GENERATION (APIFY)
@@ -604,14 +652,17 @@ class PeekrAutomationMaster:
     def send_email(self, to_email, subject, html_body):
         """Send email via SMTP"""
         try:
+            # Get active email account configuration
+            email_config = self.get_active_email_account()
+            
             msg = MIMEMultipart()
-            msg["From"] = f"{Config.SENDER_NAME} <{Config.EMAIL_ACCOUNT}>"
+            msg["From"] = f"{email_config['sender_name']} <{email_config['email']}>"
             msg["To"] = to_email
             msg["Subject"] = f"{subject} - Let's Explore"
             msg.attach(MIMEText(html_body, "html"))
             
-            with smtplib.SMTP_SSL(Config.SMTP_SERVER, Config.SMTP_PORT) as server:
-                server.login(Config.EMAIL_ACCOUNT, Config.EMAIL_PASSWORD)
+            with smtplib.SMTP_SSL(email_config['smtp_server'], email_config['smtp_port']) as server:
+                server.login(email_config['email'], email_config['password'])
                 server.send_message(msg)
             
             logger.info(f"SUCCESS: Email sent to {to_email}")
@@ -763,14 +814,17 @@ class PeekrAutomationMaster:
     def check_new_emails_fast(self):
         """Check for new emails quickly"""
         try:
+            # Get active email account configuration
+            email_config = self.get_active_email_account()
+            
             # Test DNS resolution first
             try:
-                socket.gethostbyname(Config.IMAP_SERVER)
+                socket.gethostbyname(email_config['imap_server'])
             except socket.gaierror:
                 return 0  # Skip this check if DNS resolution fails
             
-            mail = imaplib.IMAP4_SSL(Config.IMAP_SERVER, Config.IMAP_PORT)
-            mail.login(Config.EMAIL_ACCOUNT, Config.EMAIL_PASSWORD)
+            mail = imaplib.IMAP4_SSL(email_config['imap_server'], email_config['imap_port'])
+            mail.login(email_config['email'], email_config['password'])
             mail.select("inbox")
             
             # Search for unseen emails
@@ -881,15 +935,18 @@ class PeekrAutomationMaster:
             # Send email
             subject = f"Re: {original_subject}" if original_subject else "Thank you for your response"
             
+            # Get active email account configuration
+            email_config = self.get_active_email_account()
+            
             msg = MIMEMultipart()
-            msg["From"] = f"{Config.SENDER_NAME} <{Config.EMAIL_ACCOUNT}>"
+            msg["From"] = f"{email_config['sender_name']} <{email_config['email']}>"
             msg["To"] = to_email
             msg["Subject"] = subject
             msg.attach(MIMEText(reply_content, "html"))
             
-            with smtplib.SMTP_SSL(Config.SMTP_SERVER, Config.SMTP_PORT) as server:
-                server.login(Config.EMAIL_ACCOUNT, Config.EMAIL_PASSWORD)
-                server.sendmail(Config.EMAIL_ACCOUNT, to_email, msg.as_string())
+            with smtplib.SMTP_SSL(email_config['smtp_server'], email_config['smtp_port']) as server:
+                server.login(email_config['email'], email_config['password'])
+                server.sendmail(email_config['email'], to_email, msg.as_string())
             
             logger.info(f"SUCCESS: {interest_level} reply sent to {to_email}")
             return True
@@ -921,8 +978,11 @@ class PeekrAutomationMaster:
     def process_email_detailed(self, email_info):
         """Process email in detail"""
         try:
-            mail = imaplib.IMAP4_SSL(Config.IMAP_SERVER, Config.IMAP_PORT)
-            mail.login(Config.EMAIL_ACCOUNT, Config.EMAIL_PASSWORD)
+            # Get active email account configuration
+            email_config = self.get_active_email_account()
+            
+            mail = imaplib.IMAP4_SSL(email_config['imap_server'], email_config['imap_port'])
+            mail.login(email_config['email'], email_config['password'])
             mail.select("inbox")
             
             # Get full email content
@@ -1168,15 +1228,18 @@ class PeekrAutomationMaster:
             
             email_content = response.choices[0].message.content.strip()
             
+            # Get active email account configuration
+            email_config = self.get_active_email_account()
+            
             # Send email
             msg = MIMEMultipart()
-            msg["From"] = f"{Config.SENDER_NAME} <{Config.EMAIL_ACCOUNT}>"
+            msg["From"] = f"{email_config['sender_name']} <{email_config['email']}>"
             msg["To"] = candidate['email']
             msg["Subject"] = subject
             msg.attach(MIMEText(email_content, "html"))
             
-            with smtplib.SMTP_SSL(Config.SMTP_SERVER, Config.SMTP_PORT) as server:
-                server.login(Config.EMAIL_ACCOUNT, Config.EMAIL_PASSWORD)
+            with smtplib.SMTP_SSL(email_config['smtp_server'], email_config['smtp_port']) as server:
+                server.login(email_config['email'], email_config['password'])
                 server.send_message(msg)
             
             logger.info(f"SUCCESS: Follow-up #{candidate['followup_count'] + 1} sent to {candidate['email']}")
