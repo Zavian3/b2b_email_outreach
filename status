@@ -1,0 +1,4 @@
+#!/bin/bash
+# Quick status checker for Peekr Automation
+echo "🔍 Checking Peekr Automation Status..."
+python3 check_automation_status.py

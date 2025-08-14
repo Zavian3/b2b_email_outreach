@@ -177,6 +177,26 @@ schedule.every().thursday.at("04:00").do(self.run_email_outreach)   # 8:00 AM Du
 
 ## 🛠️ Troubleshooting
 
+### Status Monitoring
+
+Check if your automation is running properly:
+
+```bash
+# Quick status check
+python3 check_automation_status.py
+
+# Or use the shortcut
+./status
+```
+
+This will show you:
+- ✅ **Server time** (UTC, Dubai, Local)
+- 🔍 **Process status** (Is automation engine running?)
+- 📅 **Next scheduled runs** with countdown timers
+- 📋 **Recent log activity**
+- 📡 **Email monitoring capability**
+- 📊 **Google Sheets connectivity**
+
 ### Common Issues
 
 1. **"Missing environment variables"**
@@ -188,6 +208,10 @@ schedule.every().thursday.at("04:00").do(self.run_email_outreach)   # 8:00 AM Du
 
 3. **Email sending failures**
    - Check SMTP credentials and server settings
+
+4. **"Automation engine is not running"**
+   - Start with: `python3 peekr_automation_master.py`
+   - Or combined mode: `python3 combined_app.py`
    - Verify email account allows SMTP access
 
 4. **Apify quota exceeded**
