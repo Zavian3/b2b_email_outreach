@@ -223,10 +223,34 @@ def check_log_files():
 
 def check_email_monitoring_stats():
     """Check if real-time email monitoring is working"""
-    print("\n📡 EMAIL MONITORING STATUS")
+    print("\n📡 REAL-TIME REPLY MONITORING STATUS")
     print("=" * 50)
     
-    # Try to connect to email server to test monitoring capability
+    # Check if automation engine is running (reply monitoring runs within it)
+    automation_running = False
+    try:
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'create_time']):
+            try:
+                cmdline = ' '.join(proc.info['cmdline']) if proc.info['cmdline'] else ''
+                if 'peekr_automation_master.py' in cmdline or 'combined_app.py' in cmdline:
+                    automation_running = True
+                    uptime = datetime.now() - datetime.fromtimestamp(proc.info['create_time'])
+                    print(f"✅ Reply monitoring engine: RUNNING")
+                    print(f"   🤖 Process: {proc.info['name']} (PID {proc.info['pid']})")
+                    print(f"   ⏰ Uptime: {format_duration(int(uptime.total_seconds()))}")
+                    break
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                continue
+    except Exception:
+        pass
+    
+    if not automation_running:
+        print("❌ Reply monitoring engine: NOT RUNNING")
+        print("   💡 The 24/7 reply monitoring is part of the automation engine")
+        print("   🔧 Start with: python3 peekr_automation_master.py or python3 combined_app.py")
+        return
+    
+    # Test email server connectivity for monitoring
     try:
         import imaplib
         import socket
@@ -243,17 +267,96 @@ def check_email_monitoring_stats():
         result, data = mail.search(None, "ALL")
         if result == 'OK':
             email_count = len(data[0].split())
-            print(f"✅ Email monitoring capability: ACTIVE")
+            print(f"✅ Email server connectivity: ACTIVE")
             print(f"   📧 Total emails in inbox: {email_count}")
             print(f"   🔗 Connected to: {Config.IMAP_SERVER}:{Config.IMAP_PORT}")
             print(f"   👤 Account: {Config.EMAIL_ACCOUNT}")
+            
+            # Check for recent emails (replies to monitor)
+            from datetime import datetime, timedelta
+            yesterday = (datetime.now() - timedelta(days=1)).strftime('%d-%b-%Y')
+            result, data = mail.search(None, f'SINCE {yesterday}')
+            if result == 'OK':
+                recent_count = len(data[0].split()) if data[0] else 0
+                print(f"   📬 Recent emails (last 24h): {recent_count}")
+                if recent_count > 0:
+                    print("   🔍 Reply monitoring should be processing these emails")
+                else:
+                    print("   💤 No recent emails to monitor")
         
         mail.close()
         mail.logout()
         
     except Exception as e:
-        print(f"❌ Email monitoring capability: FAILED")
+        print(f"❌ Email server connectivity: FAILED")
         print(f"   Error: {e}")
+        print("   ⚠️  Reply monitoring cannot function without email access!")
+    
+    # Check monitoring frequency and stats from logs
+    check_reply_monitoring_logs()
+
+def check_reply_monitoring_logs():
+    """Check logs for reply monitoring activity"""
+    print(f"\n🔍 REPLY MONITORING ACTIVITY:")
+    print("-" * 30)
+    
+    log_file = "peekr_automation.log"
+    if not os.path.exists(log_file):
+        print("❌ No log file found - monitoring activity unknown")
+        return
+    
+    try:
+        # Look for monitoring-related log entries
+        monitoring_keywords = [
+            "REAL-TIME EMAIL MONITORING STATS",
+            "Found.*new emails to process",
+            "Processing reply from",
+            "reply sent to",
+            "Email monitoring",
+            "emails processed"
+        ]
+        
+        recent_monitoring_activity = []
+        
+        with open(log_file, 'r') as f:
+            lines = f.readlines()
+            # Check last 50 lines for monitoring activity
+            recent_lines = lines[-50:] if len(lines) >= 50 else lines
+            
+            for line in recent_lines:
+                for keyword in monitoring_keywords:
+                    if keyword.lower() in line.lower():
+                        recent_monitoring_activity.append(line.strip())
+                        break
+        
+        if recent_monitoring_activity:
+            print(f"✅ Recent monitoring activity found ({len(recent_monitoring_activity)} entries):")
+            for activity in recent_monitoring_activity[-5:]:  # Show last 5
+                # Extract timestamp if available
+                if ' - ' in activity:
+                    timestamp_part = activity.split(' - ')[0]
+                    message_part = ' - '.join(activity.split(' - ')[1:])
+                    print(f"   📝 {timestamp_part}: {message_part}")
+                else:
+                    print(f"   📝 {activity}")
+        else:
+            print("⚠️  No recent monitoring activity found in logs")
+            print("   💡 This could mean:")
+            print("      - No new emails to process (normal)")
+            print("      - Monitoring is not running properly")
+            print("      - Logs are not being written")
+            
+        # Check for monitoring stats reports (every 5 minutes)
+        stats_reports = [line for line in recent_lines if "REAL-TIME EMAIL MONITORING STATS" in line]
+        if stats_reports:
+            print(f"✅ Monitoring stats reports: {len(stats_reports)} found")
+            print("   📊 Reply monitoring is actively reporting statistics")
+        else:
+            print("⚠️  No monitoring stats reports found")
+            print("   💡 Stats should be reported every 5 minutes when running")
+            
+    except Exception as e:
+        print(f"❌ Error analyzing monitoring logs: {e}")
 
 def check_google_sheets_connectivity():
     """Check Google Sheets connectivity"""
@@ -330,16 +433,22 @@ def main():
         print("❌ CRITICAL: Automation engine is not running!")
         print("   🔧 Start it with: python3 peekr_automation_master.py")
         print("   🔧 Or combined mode: python3 combined_app.py")
+        print("   ⚠️  This means 24/7 reply monitoring is also NOT running!")
     else:
         print("✅ Automation engine is running")
+        print("   📡 This includes 24/7 real-time reply monitoring")
         
     # Check log activity
     if os.path.exists("peekr_automation.log"):
         mod_time = datetime.fromtimestamp(os.path.getmtime("peekr_automation.log"))
         if datetime.now() - mod_time > timedelta(minutes=10):
             print("⚠️  Log file hasn't been updated recently - check if automation is active")
+            print("   💡 Reply monitoring should generate logs every 5 minutes")
+    else:
+        print("⚠️  No log file found - automation may not be running")
     
     print("\n🔄 Run this script regularly to monitor your automation status!")
+    print("💡 The reply monitoring runs 24/7 as part of the main automation engine")
 
 if __name__ == "__main__":
     main()
