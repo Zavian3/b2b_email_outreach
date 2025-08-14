@@ -7,7 +7,7 @@ services:
     branch: main
     deploy_on_push: true
   build_command: pip install -r requirements.txt
-  run_command: python3 simple_dashboard.py
+  run_command: python3 combined_app.py
   environment_slug: python
   engines:
     python: "3.11.5"
